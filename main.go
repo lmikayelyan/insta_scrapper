@@ -1,120 +1,3 @@
-//package main
-//
-//import (
-//	"context"
-//	"flag"
-//	"fmt"
-//	"google.golang.org/api/option"
-//	"google.golang.org/api/youtube/v3"
-//	"log"
-//	"strconv"
-//)
-//
-//var (
-//	query      = flag.String("query", "Google", "Search term")
-//	maxResults = flag.Int64("max-results", 25, "Max YouTube results")
-//)
-//
-//type YoutubeVideoInfo struct {
-//	NmIdReference int
-//	Author        string
-//	Title         string
-//	Description   string
-//	Thumbnail     string
-//	URL           string
-//	Likes         uint64
-//	Dislikes      uint64
-//	Comments      uint64
-//	Views         uint64
-//}
-//
-//func check(err error) {
-//	if err != nil {
-//		panic(err)
-//	}
-//}
-//
-//const developerKey = "AIzaSyDvP5QYgJAqFMQwloT3ZSTu3FsVazB-aPw"
-//
-//func main() {
-//	nmIds := []int{178985040,
-//		150013886,
-//		224851656,
-//		234351907,
-//		233239325,
-//		145797364,
-//		222134187,
-//		142052091,
-//		218236895,
-//		223322413,
-//		227400676,
-//		93986834,
-//		222067392,
-//		219598062,
-//		225784881,
-//		199959150,
-//		208179868,
-//		231420394,
-//		200042177,
-//		195372916}
-//
-//	ctx := context.Background()
-//	service, err := youtube.NewService(ctx, option.WithAPIKey(developerKey))
-//	if err != nil {
-//		log.Fatalf("Error creating YouTube service: %v", err)
-//	}
-//
-//	var ytSlice []YoutubeVideoInfo
-//	for _, nmid := range nmIds {
-//		var videoItem YoutubeVideoInfo
-//		searchCall := service.Search.List([]string{"id", "snippet"}).Q(strconv.Itoa(nmid)).Type("video").MaxResults(5)
-//		searchResponse, err := searchCall.Do()
-//		if err != nil {
-//			log.Fatalf("Error making search API call: %v", err)
-//		}
-//
-//		for _, searchResult := range searchResponse.Items {
-//			videoID := searchResult.Id.VideoId
-//
-//			// Fetch video details using the video ID
-//			videoCall := service.Videos.List([]string{"snippet", "statistics"}).Id(videoID)
-//			videoResponse, err := videoCall.Do()
-//			if err != nil {
-//				log.Fatalf("Error making video details API call: %v", err)
-//			}
-//
-//			if len(videoResponse.Items) == 0 {
-//				fmt.Println("No video found with the given ID.")
-//				continue
-//			}
-//
-//			video := videoResponse.Items[0]
-//
-//			videoItem.NmIdReference = nmid
-//			videoItem.URL = fmt.Sprintf("https://www.youtube.com/watch?v=%s", video.Id)
-//			videoItem.Title = video.Snippet.Title
-//			videoItem.Description = video.Snippet.Description
-//			videoItem.Likes = video.Statistics.LikeCount
-//			videoItem.Dislikes = video.Statistics.DislikeCount
-//			videoItem.Comments = video.Statistics.CommentCount
-//			videoItem.Views = video.Statistics.ViewCount
-//
-//			ytSlice = append(ytSlice, videoItem)
-//		}
-//	}
-//
-//	for _, item := range ytSlice {
-//		fmt.Printf("NMID: %d\n", item.NmIdReference)
-//		fmt.Printf("URL: %s\n", item.URL)
-//		fmt.Printf("Title: %s\n", item.Title)
-//		fmt.Printf("Views: %d\n", item.Views)
-//		fmt.Printf("Likes: %d\n", item.Likes)
-//		fmt.Printf("Dislikes:  %d\n", item.Dislikes)
-//		fmt.Printf("CommentsCount: %d\n", item.Comments)
-//		fmt.Println("_____________________________")
-//	}
-//}
-
 package main
 
 import (
@@ -128,22 +11,6 @@ import (
 
 type Nms struct {
 	NmIds []int `json:"nm_ids"`
-}
-
-// Replace with your VK API access token
-const accessToken = "9498ed929498ed929498ed929d97800ac2994989498ed92f2e1db0dd22070abf11213a8"
-const postgresConnStr = "postgres://test:test@localhost:5436/testvk?sslmode=disable"
-
-type VKInfo struct {
-	NmId        int
-	ItemID      int
-	Text        string
-	Likes       int
-	Views       int
-	Comments    int
-	PostLink    string
-	AccountLink string
-	Date        string
 }
 
 type InstaInfo struct {
@@ -323,8 +190,8 @@ type MediaCroppingInfo struct {
 }
 
 type SquareCrop struct {
-	CropLeft   int     `json:"crop_left"`
-	CropRight  int     `json:"crop_right"`
+	CropLeft   float64 `json:"crop_left"`
+	CropRight  float64 `json:"crop_right"`
 	CropTop    float64 `json:"crop_top"`
 	CropBottom float64 `json:"crop_bottom"`
 }
@@ -560,58 +427,73 @@ type CommentInformTreatment struct {
 }
 
 func main() {
-	url := "https://instagram-api-20231.p.rapidapi.com/api/reels_by_keyword?query=93986834"
-
-	// Create a new request
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		log.Fatalf("Error creating request: %v", err)
-	}
-
-	// Set headers
-	req.Header.Set("x-rapidapi-host", "instagram-api-20231.p.rapidapi.com")
-	req.Header.Set("x-rapidapi-key", "e87d28030dmshf7754819f694597p198c99jsn16b59c0ebda9")
-
-	// Create a new HTTP client and send the request
+	baseURL := "https://instagram-api-20231.p.rapidapi.com/api/reels_by_keyword?query=201771004"
+	reelsMaxId := ""
 	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatalf("Error making request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	// Read the response body
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalf("Error reading response body: %v", err)
-	}
-
-	var jsonResp Response
-	if err := json.Unmarshal(body, &jsonResp); err != nil {
-		log.Fatalf("Error parsing response body: %v", err)
-	}
-
-	clipsInfo := jsonResp.Data.Modules
-
 	var reelsSlice []Reel
-	for _, module := range clipsInfo {
-		for _, data := range module.Clips {
-			reelInfo := Reel{
-				ItemCode:      data.Media.Code,
-				ItemLink:      fmt.Sprintf("http://www.instagram.com/%s", data.Media.Code),
-				Username:      data.Media.User.Username,
-				AuthorLink:    fmt.Sprintf("http://www.instagram.com/%s", data.Media.User.Username),
-				LikesCount:    data.Media.LikeCount,
-				CommentsCount: data.Media.CommentCount,
-				RepostCount:   data.Media.ReshareCount,
-			}
 
-			timestamp := data.Media.TakenAt
-			t := time.Unix(timestamp, 0)
-			reelInfo.Date = t
-
-			reelsSlice = append(reelsSlice, reelInfo)
+	for {
+		url := baseURL
+		if reelsMaxId != "" {
+			url += "&reels_max_id=" + reelsMaxId
 		}
+
+		// Create a new request
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			log.Fatalf("Error creating request: %v", err)
+		}
+
+		// Set headers
+		req.Header.Set("x-rapidapi-host", "instagram-api-20231.p.rapidapi.com")
+		req.Header.Set("x-rapidapi-key", "e87d28030dmshf7754819f694597p198c99jsn16b59c0ebda9")
+
+		// Send the request
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Fatalf("Error making request: %v", err)
+		}
+		defer resp.Body.Close()
+
+		// Read the response body
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatalf("Error reading response body: %v", err)
+		}
+
+		// Parse the response body
+		var jsonResp Response
+		if err := json.Unmarshal(body, &jsonResp); err != nil {
+			log.Fatalf("Error parsing response body: %v", err)
+		}
+
+		clipsInfo := jsonResp.Data.Modules
+		for _, module := range clipsInfo {
+			for _, data := range module.Clips {
+				reelInfo := Reel{
+					ItemCode:      data.Media.Code,
+					ItemLink:      fmt.Sprintf("http://www.instagram.com/%s", data.Media.Code),
+					Username:      data.Media.User.Username,
+					AuthorLink:    fmt.Sprintf("http://www.instagram.com/%s", data.Media.User.Username),
+					LikesCount:    data.Media.LikeCount,
+					CommentsCount: data.Media.CommentCount,
+					RepostCount:   data.Media.ReshareCount,
+				}
+
+				timestamp := data.Media.TakenAt
+				t := time.Unix(timestamp, 0)
+				reelInfo.Date = t
+
+				reelsSlice = append(reelsSlice, reelInfo)
+			}
+		}
+
+		if !jsonResp.Data.HasMore {
+			break
+		}
+
+		// Update reelsMaxId for the next request
+		reelsMaxId = jsonResp.Data.ReelsMaxId
 	}
 
 	for _, reel := range reelsSlice {
@@ -627,113 +509,3 @@ func main() {
 		fmt.Printf("Date: %s\n", timestring)
 	}
 }
-
-//func main() {
-//	start := time.Now()
-//
-//	r := new(big.Int)
-//	fmt.Println(r.Binomial(1000, 10))
-//
-//	vk := api.NewVK(accessToken)
-//
-//	jsonFilePath := "nm.json"
-//
-//	// Open the JSON file
-//	jsonFile, err := os.Open(jsonFilePath)
-//	if err != nil {
-//		log.Fatalf("Error opening JSON file: %v", err)
-//	}
-//	defer jsonFile.Close()
-//
-//	// Read the JSON file
-//	byteValue, err := ioutil.ReadAll(jsonFile)
-//	if err != nil {
-//		log.Fatalf("Error reading JSON file: %v", err)
-//	}
-//
-//	// Unmarshal the JSON data
-//	var numbers Nms
-//	err = json.Unmarshal(byteValue, &numbers)
-//
-//	ctx := context.Background()
-//	pool, err := pgxpool.Connect(ctx, postgresConnStr)
-//	if err != nil {
-//		log.Fatalf("Unable to connect to database: %v\n", err)
-//	}
-//	defer pool.Close()
-//
-//	var vkList []VKInfo
-//	batchNumber := 1
-//	for _, nmid := range numbers.NmIds {
-//		searchVKAndStore(&vkList, vk, pool, nmid)
-//		if len(vkList) > 150 {
-//			batch := &pgx.Batch{}
-//
-//			for _, item := range vkList {
-//				batch.Queue(
-//					`INSERT INTO vk (nmid, item_id, item_text, views_count, likes_count, coments_count, date, post_link, account_link) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-//					nmid, item.ItemID, item.Text, item.Views, item.Likes, item.Comments, item.Date, item.PostLink, item.AccountLink,
-//				)
-//			}
-//
-//			br := pool.SendBatch(ctx, batch)
-//			_, err = br.Exec()
-//			if err != nil {
-//				log.Fatalf("Error while executing batch insert: %v", err)
-//			}
-//			br.Close()
-//
-//			fmt.Printf("Inserted records: %d\n", batchNumber)
-//			batchNumber++
-//
-//			vkList = nil
-//		}
-//	}
-//
-//	elapsed := time.Since(start)
-//	log.Printf("Binomial took %s", elapsed)
-//}
-//
-//func searchVKAndStore(vkList *[]VKInfo, vk *api.VK, pool *pgxpool.Pool, nmid int) {
-//	searchParams := params.NewNewsfeedSearchBuilder()
-//	searchParams.Q(strconv.Itoa(nmid))
-//	searchParams.Count(10)
-//
-//	response, err := vk.NewsfeedSearch(searchParams.Params)
-//	if err != nil {
-//		log.Fatalf("Error while calling VK API: %v", err)
-//	}
-//
-//	if len(response.Items) == 0 {
-//		return
-//	}
-//
-//	// Prepare the batch insert statement
-//
-//	for _, item := range response.Items {
-//		timestamp := int64(item.Date)
-//
-//		// Convert Unix timestamp to time.Time
-//		t := time.Unix(timestamp, 0)
-//
-//		// Format the time.Time to a string
-//		formattedTime := t.Format(time.RFC3339) // Use your preferred format here
-//
-//		postLink := fmt.Sprintf("https://vk.com/wall%d_%d", item.OwnerID, item.ID)
-//		accountLink := fmt.Sprintf("https://vk.com/id%d", item.OwnerID)
-//
-//		vkItem := VKInfo{
-//			NmId:        nmid,
-//			ItemID:      item.ID,
-//			Text:        item.Text,
-//			Likes:       item.Likes.Count,
-//			Views:       item.Views.Count,
-//			Comments:    item.Comments.Count,
-//			Date:        formattedTime,
-//			PostLink:    postLink,
-//			AccountLink: accountLink,
-//		}
-//
-//		*vkList = append(*vkList, vkItem)
-//	}
-//}
